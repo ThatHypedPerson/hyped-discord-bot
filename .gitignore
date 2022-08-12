@@ -1,0 +1,10 @@
+__pycache__/
+
+# i use .venv/, but a normal person might use venv/
+.venv/
+venv/ 
+
+.env
+
+# project specific
+react_message.txt
