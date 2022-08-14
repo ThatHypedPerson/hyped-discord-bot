@@ -14,7 +14,9 @@ class DiscordBot(commands.Bot):
 
 		self.member_id = 947987042208481301
 		self.server = disnake.Guild
+		self.role_channel = disnake.TextChannel
 		self.notif_channel = disnake.TextChannel
+		self.mod_channel = disnake.TextChannel
 		self.role_message_id = int
 		self.notif_warn_id = int
 
@@ -24,34 +26,30 @@ class DiscordBot(commands.Bot):
 		self.custom_message = str
 
 		self.emoji_to_role = {
-			disnake.PartialEmoji(name="🔴"): 1007625160066617394,  # ID of the role associated with unicode emoji '🔴'.
-			disnake.PartialEmoji(name="🟡"): 949407352728203365,  # ID of the role associated with unicode emoji '🟡'.
-			# disnake.PartialEmoji(
-			# 	name="green", id=0
-			# ): 0,  # ID of the role associated with a partial emoji's ID.
+			disnake.PartialEmoji(name="hypedHYPE", id=999282968583491604): 947742726508666950 # dont need to use real name
 		}
 
 	async def on_ready(self):
 		print("ready")
-		self.server = self.get_guild(947964970384109649)
-		self.notif_channel = self.server.get_channel(951576624099393546)
+		self.server = self.get_guild(920492766109261845)
+		self.role_channel = self.server.get_channel(1007589638837387325)
+		self.notif_channel = self.server.get_channel(937597721756454942)
+		self.mod_channel = self.server.get_channel(1007659411591929916)
 		self.role_message_id = await self.send_react_message()  # ID of the message that can be reacted to to add/remove a role.
 
 	async def send_react_message(self):
-		# need a better name
 		try:
 			file = open("react_message.txt", "r+")
 		except:
 			file = open("react_message.txt", "w+")
 		
 		try:
-			message = await self.notif_channel.fetch_message(int(file.readline()))
+			message = await self.role_channel.fetch_message(int(file.readline()))
 		except:
-			notif_role = self.server.get_role(1007625160066617394)
+			notif_role = self.server.get_role(947742726508666950)
 			text = f"React to this message to recieve the {notif_role.mention} role to know when Hyped goes live or uploads a video."
-			message = await self.notif_channel.send(text)
-			await message.add_reaction(disnake.PartialEmoji(name="🔴"))
-			await message.add_reaction(disnake.PartialEmoji(name="🟡"))
+			message = await self.role_channel.send(text)
+			await message.add_reaction(disnake.PartialEmoji(name="hypedHYPE", id=999282968583491604))
 		
 		# clear file
 		file.truncate()
@@ -145,7 +143,7 @@ class DiscordBot(commands.Bot):
 			return
 
 		if payload.emoji == disnake.PartialEmoji(name="✔️"):
-			notif_role = guild.get_role(1007625160066617394) # better to get actual role than hoping to ping it
+			notif_role = guild.get_role(947742726508666950) # better to get actual role than hoping to ping it
 			
 			notif = str
 
@@ -157,8 +155,7 @@ class DiscordBot(commands.Bot):
 			notif += f"\n{self.stream_title}\n\n"
 			notif += f"Come watch the stream at:\nTwitch: {self.twitch_url}\nYouTube: {self.youtube_url}"
 			await self.notif_channel.send(notif)
-		# change to mod channel
-		await self.notif_channel.get_partial_message(self.notif_warn_id).delete()
+		await self.mod_channel.get_partial_message(self.notif_warn_id).delete()
 
 intents = disnake.Intents.default()
 intents.members = True
@@ -181,9 +178,9 @@ async def stream(
 	youtube: YouTube Stream Link
 	message: Replace Default Notifier (You Need to Include @Notifications)
 	"""
-	
-	# title = "【game】title | Hyped"
-	# warning_message = f"Are these all correct?\nTitle: {title}\nTwitch: {twitch}\nYouTube: {youtube}"
+
+	if inter.channel_id != bot.mod_channel.id:
+		await inter.response.send_message(f"only do this command in {bot.mod_channel.mention} >:(", ephemeral=True)
 
 	if youtube != "":
 		youtube = details.get_youtube_alt_stream(youtube)
@@ -214,8 +211,5 @@ async def stream(
 	bot.youtube_url = youtube['url']
 	bot.stream_title = youtube['title']
 	bot.custom_message = message
-
-	# notif_role = bot.server.get_role(949407352728203365)
-	# await bot.notif_channel.send("abuh" + notif_role.mention)
 
 bot.run(token)
