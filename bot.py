@@ -68,78 +68,66 @@ class DiscordBot(commands.Bot):
 		if payload.member.id == self.member_id:
 			return
 		
-		# Make sure that the message the user is reacting to is the one we care about.
 		if payload.message_id != self.role_message_id:
-			if payload.message_id != self.notif_warn_id:
+			if payload.message_id != self.notif_warn_id: # interaction for sending notifications
 				return
 			else:
 				await self.confirm_notification(payload)
 
 		guild = self.get_guild(payload.guild_id)
 		if guild is None:
-			# Check if we're still in the guild and it's cached.
 			return
 
 		try:
 			role_id = self.emoji_to_role[payload.emoji]
 		except KeyError:
-			# If the emoji isn't the one we care about then exit as well.
 			return
 
 		role = guild.get_role(role_id)
 		if role is None:
-			# Make sure the role still exists and is valid.
 			return
 
 		try:
-			# Finally, add the role.
 			await payload.member.add_roles(role)
+			print(f"Added Notifications: {payload.member.display_name}")
 		except disnake.HTTPException:
-			# If we want to do something in case of errors we'd do it here.
+			print("Error adding role")
 			pass
 
 	async def on_raw_reaction_remove(self, payload: disnake.RawReactionActionEvent):
 		"""Removes a role based on a reaction emoji."""
 		if payload.guild_id is None:
 			return
-		# Make sure that the message the user is reacting to is the one we care about.
 		if payload.message_id != self.role_message_id:
 			return
 
 		guild = self.get_guild(payload.guild_id)
 		if guild is None:
-			# Check if we're still in the guild and it's cached.
 			return
 
 		try:
 			role_id = self.emoji_to_role[payload.emoji]
 		except KeyError:
-			# If the emoji isn't the one we care about then exit as well.
 			return
 
 		role = guild.get_role(role_id)
 		if role is None:
-			# Make sure the role still exists and is valid.
 			return
 
-		# The payload for `on_raw_reaction_remove` does not provide `.member`
-		# so we must get the member ourselves from the payload's `.user_id`.
 		member = guild.get_member(payload.user_id)
 		if member is None:
-			# Make sure the member still exists and is valid.
 			return
 
 		try:
-			# Finally, remove the role.
 			await member.remove_roles(role)
+			print(f"Removed Notifications: {member.name}")
 		except disnake.HTTPException:
-			# If we want to do something in case of errors we'd do it here.
+			print("Error removing role")
 			pass
 
 	async def confirm_notification(self, payload: disnake.RawReactionActionEvent):
 		guild = self.get_guild(payload.guild_id)
 		if guild is None:
-			# Check if we're still in the guild and it's cached.
 			return
 
 		if payload.emoji == disnake.PartialEmoji(name="✔️"):
