@@ -1,12 +1,19 @@
 import os
+import logging
 import disnake
 from disnake.ext import commands
 
 import details
 
+# get discord bot token from .env file
 token = os.environ["token"]
 
-intents = disnake.Intents.all() # should prob lower intent level
+# set up logging
+logger = logging.getLogger('disnake')
+logger.setLevel(logging.DEBUG)
+handler = logging.FileHandler(filename='disnake.log', encoding='utf-8', mode='w')
+handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+logger.addHandler(handler)
 
 class DiscordBot(commands.Bot):
 	def __init__(self, *args, **kwargs):
@@ -101,8 +108,10 @@ class DiscordBot(commands.Bot):
 		try:
 			await payload.member.add_roles(role)
 			print(f"Added Notifications: {payload.member.display_name}")
+			logger.info(f"Added Notifications: {payload.member.display_name}")
 		except disnake.HTTPException:
-			print("Error adding role")
+			print(f"Error adding role for {payload.member.display_name}")
+			logger.error(f"Error adding role for {payload.member.display_name}")
 			pass
 
 	async def on_raw_reaction_remove(self, payload: disnake.RawReactionActionEvent):
@@ -132,8 +141,10 @@ class DiscordBot(commands.Bot):
 		try:
 			await member.remove_roles(role)
 			print(f"Removed Notifications: {member.name}")
+			logger.info(f"Removed Notifications: {member.name}")
 		except disnake.HTTPException:
-			print("Error removing role")
+			print(f"Error removing role for {member.name}")
+			logger.error(f"Error removing role for {member.name}")
 			pass
 
 	# confirm sending notification message based on message reaction
@@ -155,7 +166,9 @@ class DiscordBot(commands.Bot):
 			notif += f"\n{self.stream_title}\n\n"
 			notif += f"Come watch the stream at:\nTwitch: {self.twitch_url}\nYouTube: {self.youtube_url}"
 			await self.notif_channel.send(notif)
+			logger.info("Sent notification message.")
 		await self.mod_channel.get_partial_message(self.notif_warn_id).delete() # delete mod message regardless of confirmation
+		logger.info("Notification confirmation message deleted.")
 
 # set up bot to add commands (can't do in class, fun)
 intents = disnake.Intents.default()
@@ -180,6 +193,9 @@ async def stream(
 	youtube: YouTube Stream Link
 	message: Replace Default Notifier (You Need to Include @Notifications)
 	"""
+
+	# logging details
+	logger.info(f"Stream notification command invoked by {inter.user.name}.")
 
 	# forces command to be run in mod channel
 	if inter.channel_id != bot.mod_channel.id:
