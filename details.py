@@ -1,10 +1,13 @@
-# returns stream info
+#!/usr/bin/env python3
 
+# read local environment variables
 import os
+from dotenv import load_dotenv
+load_dotenv()
+
+# google/youtube api
 from urllib import response
-
 from urllib.parse import urlparse, parse_qs
-
 import googleapiclient.discovery
 
 # Disable OAuthlib's HTTPS verification when running locally.

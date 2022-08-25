@@ -1,8 +1,16 @@
+#!/usr/bin/env python3
+
+# read local environment variables
 import os
-import logging
+from dotenv import load_dotenv
+load_dotenv()
+
+# python discord bot library
 import disnake
 from disnake.ext import commands
+import logging
 
+# local details.py for youtube api requests
 import details
 
 # get discord bot token from .env file
