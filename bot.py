@@ -236,7 +236,7 @@ async def stream(
 	bot.notif_warn_id = notif_warn.id # Warning Notification Message ID
 	
 	# remove stream emoji from youtube title for notification message
-	if "🔴" in youtube["title"] or "⚫" in youtube["title"]:
+	if any(circle in youtube["title"] for circle in ("🔴",  "⚫", "⭕")):
 		youtube["title"] = youtube["title"][1:]
 
 	# set bot variables for sending notification message
